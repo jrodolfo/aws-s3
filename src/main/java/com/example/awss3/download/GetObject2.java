@@ -20,8 +20,7 @@ public class GetObject2 {
     public static void main(String[] args) throws IOException {
         Regions clientRegion = Regions.US_EAST_2;
         String bucketName = "jrodolfo-aws-training";
-        String key = "jdk-8u333-windows-x64.exe";
-        //String key = "test.txt";
+        String key = "test.txt"; // name of the file we want to download
 
         S3Object fullObject = null, objectPortion = null, headerOverrideObject = null;
         try {
@@ -30,20 +29,20 @@ public class GetObject2 {
                     .withCredentials(new ProfileCredentialsProvider())
                     .build();
 
-            // Get an object and print its contents.
+            // 1) Get an object and print its contents
             System.out.println("Downloading an object");
             fullObject = s3Client.getObject(new GetObjectRequest(bucketName, key));
             System.out.println("Content-Type: " + fullObject.getObjectMetadata().getContentType());
             System.out.println("Content: ");
             displayTextInputStream(fullObject.getObjectContent());
 
-            // Get a range of bytes from an object and print the bytes.
+            // 2) Get a range of bytes from an object and print the bytes
             GetObjectRequest rangeObjectRequest = new GetObjectRequest(bucketName, key).withRange(0, 9);
             objectPortion = s3Client.getObject(rangeObjectRequest);
             System.out.println("Printing bytes retrieved.");
             displayTextInputStream(objectPortion.getObjectContent());
 
-            // Get an entire object, overriding the specified response headers, and print the object's content.
+            // 3) Get an entire object, overriding the specified response headers, and print the object's content
             ResponseHeaderOverrides headerOverrides = new ResponseHeaderOverrides()
                     .withCacheControl("No-cache")
                     .withContentDisposition("attachment; filename=example.txt");
@@ -51,16 +50,15 @@ public class GetObject2 {
                     .withResponseHeaders(headerOverrides);
             headerOverrideObject = s3Client.getObject(getObjectRequestHeaderOverride);
             displayTextInputStream(headerOverrideObject.getObjectContent());
+
         } catch (AmazonServiceException e) {
-            // The call was transmitted successfully, but Amazon S3 couldn't process
-            // it, so it returned an error response.
+            // The call was transmitted successfully, but Amazon S3 couldn't process it, so it returned an error response
             e.printStackTrace();
         } catch (SdkClientException e) {
-            // Amazon S3 couldn't be contacted for a response, or the client
-            // couldn't parse the response from Amazon S3.
+            // Amazon S3 couldn't be contacted for a response, or the client couldn't parse the response from Amazon S3
             e.printStackTrace();
         } finally {
-            // To ensure that the network connection doesn't remain open, close any open input streams.
+            // To ensure that the network connection doesn't remain open, close any open input streams
             if (fullObject != null) {
                 fullObject.close();
             }
@@ -74,7 +72,7 @@ public class GetObject2 {
     }
 
     private static void displayTextInputStream(InputStream input) throws IOException {
-        // Read the text input stream one line at a time and display each line.
+        // Read the text input stream one line at a time and display each line
         BufferedReader reader = new BufferedReader(new InputStreamReader(input));
         String line;
         while ((line = reader.readLine()) != null) {
