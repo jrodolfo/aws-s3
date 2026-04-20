@@ -213,6 +213,14 @@ Good next steps for the repository are:
 - [Amazon S3 object download examples](https://docs.aws.amazon.com/AmazonS3/latest/userguide/download-objects.html)
 - [Multipart uploads in Amazon S3 with Java](https://www.baeldung.com/aws-s3-multipart-upload)
 
+## Contact
+
+- Software Developer: Rod Oliveira
+- GitHub: https://github.com/jrodolfo
+- Webpage: https://jrodolfo.net
+
 ## License
 
-This project is licensed under the MIT License. See [LICENSE](LICENSE).
+- MIT License
+- Copyright (c) 2026 Rod Oliveira
+- See [LICENSE](./LICENSE)
