@@ -1,6 +1,6 @@
-package com.example.awss3.upload;
+package net.jrodolfo.awss3.upload;
 
-import com.example.awss3.SampleInput;
+import net.jrodolfo.awss3.SampleInput;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.model.CreateBucketConfiguration;

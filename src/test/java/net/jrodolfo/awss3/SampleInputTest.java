@@ -1,4 +1,4 @@
-package com.example.awss3;
+package net.jrodolfo.awss3;
 
 import org.junit.Test;
 

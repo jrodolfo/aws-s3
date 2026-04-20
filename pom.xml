@@ -8,7 +8,7 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
 
-  <groupId>com.example.awss3</groupId>
+  <groupId>net.jrodolfo.awss3</groupId>
   <artifactId>awss3</artifactId>
   <packaging>jar</packaging>
   <version>1.0-SNAPSHOT</version>

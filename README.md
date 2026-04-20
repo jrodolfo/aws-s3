@@ -8,18 +8,18 @@ The code was written over time to capture working examples, not to form a single
 
 - `SingleS3Upload`: upload a small text object to S3.
 - `MultiPartS3Upload`: upload a local file using multipart transfer support.
-- `GetObject2`: download an object and demonstrate a few retrieval options.
+- `S3ObjectDownload`: download an object and demonstrate a few retrieval options.
 
 All samples now use the AWS SDK for Java v2 client style and share the same runtime configuration approach.
 
 ## Project Layout
 
 ```text
-src/main/java/com/example/awss3/SampleInput.java
-src/main/java/com/example/awss3/upload/SingleS3Upload.java
-src/main/java/com/example/awss3/upload/MultiPartS3Upload.java
-src/main/java/com/example/awss3/download/GetObject2.java
-src/test/java/com/example/awss3/SampleInputTest.java
+src/main/java/net/jrodolfo/awss3/SampleInput.java
+src/main/java/net/jrodolfo/awss3/upload/SingleS3Upload.java
+src/main/java/net/jrodolfo/awss3/upload/MultiPartS3Upload.java
+src/main/java/net/jrodolfo/awss3/download/S3ObjectDownload.java
+src/test/java/net/jrodolfo/awss3/SampleInputTest.java
 ```
 
 ## Requirements
@@ -45,7 +45,7 @@ The samples use the standard AWS credential chain by default. A typical local se
 aws configure
 ```
 
-`GetObject2` can also use a named profile if you pass one explicitly.
+`S3ObjectDownload` can also use a named profile if you pass one explicitly.
 
 ## Runtime Configuration
 
@@ -87,7 +87,7 @@ Example:
 
 ```bash
 mvn -q exec:java \
-  -Dexec.mainClass=com.example.awss3.upload.SingleS3Upload \
+  -Dexec.mainClass=net.jrodolfo.awss3.upload.SingleS3Upload \
   -Dexec.args="my-s3-sample-bucket hello.txt 'hello from java' us-east-2 false false"
 ```
 
@@ -112,7 +112,7 @@ Example:
 
 ```bash
 mvn -q exec:java \
-  -Dexec.mainClass=com.example.awss3.upload.MultiPartS3Upload \
+  -Dexec.mainClass=net.jrodolfo.awss3.upload.MultiPartS3Upload \
   -Dexec.args="my-s3-sample-bucket /path/to/file.zip file.zip us-east-2 10 5242880"
 ```
 
@@ -135,7 +135,7 @@ Example:
 
 ```bash
 mvn -q exec:java \
-  -Dexec.mainClass=com.example.awss3.download.GetObject2 \
+  -Dexec.mainClass=net.jrodolfo.awss3.download.S3ObjectDownload \
   -Dexec.args="my-s3-sample-bucket hello.txt us-east-2 default"
 ```
 

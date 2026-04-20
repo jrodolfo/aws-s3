@@ -1,6 +1,6 @@
-package com.example.awss3.download;
+package net.jrodolfo.awss3.download;
 
-import com.example.awss3.SampleInput;
+import net.jrodolfo.awss3.SampleInput;
 import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.ProfileCredentialsProvider;
 import software.amazon.awssdk.core.ResponseInputStream;
@@ -17,7 +17,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 
-public class GetObject2 {
+public class S3ObjectDownload {
 
     public static void main(String[] args) throws IOException {
         Config config = resolveConfig(args);

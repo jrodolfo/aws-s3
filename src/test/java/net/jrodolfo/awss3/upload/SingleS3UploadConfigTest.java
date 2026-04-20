@@ -1,4 +1,4 @@
-package com.example.awss3.upload;
+package net.jrodolfo.awss3.upload;
 
 import org.junit.Test;
 import software.amazon.awssdk.regions.Region;
