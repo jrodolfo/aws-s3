@@ -18,6 +18,9 @@ All samples now use the AWS SDK for Java v2 client style and share the same runt
 Makefile
 LICENSE
 README.md
+.github/
+  workflows/
+    ci.yml
 scripts/
   upload-text.sh
   upload-file.sh
@@ -55,6 +58,10 @@ mvn test
 ```
 
 The test suite covers runtime input parsing and sample configuration behavior. It does not exercise real S3 operations.
+
+## Continuous Integration
+
+GitHub Actions runs `mvn test` automatically on pushes to `main` and on pull requests. The workflow file lives at `.github/workflows/ci.yml`.
 
 ## Credentials
 
@@ -249,9 +256,9 @@ It is not intended to be a production-ready S3 library.
 
 Good next steps for the repository are:
 
-- add integration tests that run only when AWS credentials and a test bucket are available
 - add one end-to-end sample workflow with upload and download together
 - decide whether to keep the current sample names or rename them to match their behavior more clearly
+- decide whether to remove or redesign compatibility inputs such as `maxThreads`
 
 ## References
 
