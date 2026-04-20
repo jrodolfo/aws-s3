@@ -21,31 +21,27 @@ import java.io.InputStreamReader;
 public class GetObject2 {
 
     public static void main(String[] args) throws IOException {
-        Regions clientRegion = Regions.fromName(
-                SampleInput.optional(args, 2, "AWS_S3_REGION", Regions.US_EAST_2.getName()));
-        String bucketName = SampleInput.required(args, 0, "AWS_S3_BUCKET", "bucket name");
-        String key = SampleInput.required(args, 1, "AWS_S3_KEY", "object key");
-        String profileName = SampleInput.optional(args, 3, "AWS_PROFILE", null);
+        Config config = resolveConfig(args);
 
         S3Object fullObject = null, objectPortion = null, headerOverrideObject = null;
         try {
-            AWSCredentialsProvider credentialsProvider = profileName == null
+            AWSCredentialsProvider credentialsProvider = config.profileName == null
                     ? new DefaultAWSCredentialsProviderChain()
-                    : new ProfileCredentialsProvider(profileName);
+                    : new ProfileCredentialsProvider(config.profileName);
             AmazonS3 s3Client = AmazonS3ClientBuilder.standard()
-                    .withRegion(clientRegion)
+                    .withRegion(config.clientRegion)
                     .withCredentials(credentialsProvider)
                     .build();
 
             // 1) Get an object and print its contents
             System.out.println("Downloading an object");
-            fullObject = s3Client.getObject(new GetObjectRequest(bucketName, key));
+            fullObject = s3Client.getObject(new GetObjectRequest(config.bucketName, config.key));
             System.out.println("Content-Type: " + fullObject.getObjectMetadata().getContentType());
             System.out.println("Content: ");
             displayTextInputStream(fullObject.getObjectContent());
 
             // 2) Get a range of bytes from an object and print the bytes
-            GetObjectRequest rangeObjectRequest = new GetObjectRequest(bucketName, key).withRange(0, 9);
+            GetObjectRequest rangeObjectRequest = new GetObjectRequest(config.bucketName, config.key).withRange(0, 9);
             objectPortion = s3Client.getObject(rangeObjectRequest);
             System.out.println("Printing bytes retrieved.");
             displayTextInputStream(objectPortion.getObjectContent());
@@ -54,7 +50,7 @@ public class GetObject2 {
             ResponseHeaderOverrides headerOverrides = new ResponseHeaderOverrides()
                     .withCacheControl("No-cache")
                     .withContentDisposition("attachment; filename=example.txt");
-            GetObjectRequest getObjectRequestHeaderOverride = new GetObjectRequest(bucketName, key)
+            GetObjectRequest getObjectRequestHeaderOverride = new GetObjectRequest(config.bucketName, config.key)
                     .withResponseHeaders(headerOverrides);
             headerOverrideObject = s3Client.getObject(getObjectRequestHeaderOverride);
             displayTextInputStream(headerOverrideObject.getObjectContent());
@@ -79,6 +75,15 @@ public class GetObject2 {
         }
     }
 
+    static Config resolveConfig(String[] args) {
+        Regions clientRegion = Regions.fromName(
+                SampleInput.optional(args, 2, "AWS_S3_REGION", Regions.US_EAST_2.getName()));
+        String bucketName = SampleInput.required(args, 0, "AWS_S3_BUCKET", "bucket name");
+        String key = SampleInput.required(args, 1, "AWS_S3_KEY", "object key");
+        String profileName = SampleInput.optional(args, 3, "AWS_PROFILE", null);
+        return new Config(bucketName, key, clientRegion, profileName);
+    }
+
     private static void displayTextInputStream(InputStream input) throws IOException {
         // Read the text input stream one line at a time and display each line
         BufferedReader reader = new BufferedReader(new InputStreamReader(input));
@@ -87,5 +92,19 @@ public class GetObject2 {
             System.out.println(line);
         }
         System.out.println();
+    }
+
+    static final class Config {
+        final String bucketName;
+        final String key;
+        final Regions clientRegion;
+        final String profileName;
+
+        Config(String bucketName, String key, Regions clientRegion, String profileName) {
+            this.bucketName = bucketName;
+            this.key = key;
+            this.clientRegion = clientRegion;
+            this.profileName = profileName;
+        }
     }
 }

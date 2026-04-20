@@ -27,35 +27,29 @@ import java.util.concurrent.Executors;
 public class MultiPartS3Upload {
 
     public static void main(String[] args) throws Exception {
-        String bucketName = SampleInput.required(args, 0, "AWS_S3_BUCKET", "bucket name");
-        String absolutePathWithFileName = SampleInput.required(args, 1, "AWS_S3_FILE", "file path");
-        String keyName = SampleInput.optional(args, 2, "AWS_S3_KEY",
-                Paths.get(absolutePathWithFileName).getFileName().toString());
-        Regions region = Regions.fromName(SampleInput.optional(args, 3, "AWS_S3_REGION", Regions.US_EAST_2.getName()));
-        int maxUploadThreads = Integer.parseInt(SampleInput.optional(args, 4, "AWS_S3_MAX_THREADS", "10"));
-        long uploadThreshold = Long.parseLong(SampleInput.optional(args, 5, "AWS_S3_MULTIPART_THRESHOLD", "5242880"));
+        Config config = resolveConfig(args);
 
-        Path path = Paths.get(absolutePathWithFileName);
+        Path path = Paths.get(config.filePath);
         long fileSizeInBytes = Files.size(path);
 
-        System.out.println("Uploading file " + absolutePathWithFileName +
-                ", size " + fileSizeInBytes + " bytes, " + "to the AWS S3 bucket " + bucketName + ".");
+        System.out.println("Uploading file " + config.filePath +
+                ", size " + fileSizeInBytes + " bytes, " + "to the AWS S3 bucket " + config.bucketName + ".");
 
         AWSCredentialsProvider credentialsProvider = new DefaultAWSCredentialsProviderChain();
         AmazonS3 s3Client = AmazonS3ClientBuilder
                 .standard()
                 .withCredentials(credentialsProvider)
-                .withRegion(region)
+                .withRegion(config.region)
                 .build();
 
         TransferManager transferManager = TransferManagerBuilder
                 .standard()
                 .withS3Client(s3Client)
-                .withMultipartUploadThreshold(uploadThreshold)
-                .withExecutorFactory(() -> Executors.newFixedThreadPool(maxUploadThreads))
+                .withMultipartUploadThreshold(config.uploadThreshold)
+                .withExecutorFactory(() -> Executors.newFixedThreadPool(config.maxUploadThreads))
                 .build();
 
-        PutObjectRequest request = new PutObjectRequest(bucketName, keyName, new File(absolutePathWithFileName));
+        PutObjectRequest request = new PutObjectRequest(config.bucketName, config.keyName, new File(config.filePath));
         Upload upload = transferManager.upload(request);
         upload.addProgressListener(createProgressListener(upload));
 
@@ -65,13 +59,24 @@ public class MultiPartS3Upload {
             SimpleDateFormat formatter = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
             System.out.println(formatter.format(calendar.getTime()) + " - Upload is completed.");
         } catch (AmazonClientException e) {
-            System.err.println("An error occurred while uploading the file " + absolutePathWithFileName +
-                    " to the AWS S3 bucket " + bucketName + ".");
+            System.err.println("An error occurred while uploading the file " + config.filePath +
+                    " to the AWS S3 bucket " + config.bucketName + ".");
             e.printStackTrace();
             throw e;
         } finally {
             transferManager.shutdownNow(false);
         }
+    }
+
+    static Config resolveConfig(String[] args) {
+        String filePath = SampleInput.required(args, 1, "AWS_S3_FILE", "file path");
+        String bucketName = SampleInput.required(args, 0, "AWS_S3_BUCKET", "bucket name");
+        String keyName = SampleInput.optional(args, 2, "AWS_S3_KEY",
+                Paths.get(filePath).getFileName().toString());
+        Regions region = Regions.fromName(SampleInput.optional(args, 3, "AWS_S3_REGION", Regions.US_EAST_2.getName()));
+        int maxUploadThreads = Integer.parseInt(SampleInput.optional(args, 4, "AWS_S3_MAX_THREADS", "10"));
+        long uploadThreshold = Long.parseLong(SampleInput.optional(args, 5, "AWS_S3_MULTIPART_THRESHOLD", "5242880"));
+        return new Config(bucketName, filePath, keyName, region, maxUploadThreads, uploadThreshold);
     }
 
     private static ProgressListener createProgressListener(Transfer transfer) {
@@ -91,5 +96,24 @@ public class MultiPartS3Upload {
                 }
             }
         };
+    }
+
+    static final class Config {
+        final String bucketName;
+        final String filePath;
+        final String keyName;
+        final Regions region;
+        final int maxUploadThreads;
+        final long uploadThreshold;
+
+        Config(String bucketName, String filePath, String keyName, Regions region, int maxUploadThreads,
+               long uploadThreshold) {
+            this.bucketName = bucketName;
+            this.filePath = filePath;
+            this.keyName = keyName;
+            this.region = region;
+            this.maxUploadThreads = maxUploadThreads;
+            this.uploadThreshold = uploadThreshold;
+        }
     }
 }

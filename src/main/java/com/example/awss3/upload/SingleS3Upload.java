@@ -16,27 +16,22 @@ import software.amazon.awssdk.services.s3.S3Client;
 public class SingleS3Upload {
 
     public static void main(String[] args) {
-        String bucket = SampleInput.required(args, 0, "AWS_S3_BUCKET", "bucket name");
-        String key = SampleInput.required(args, 1, "AWS_S3_KEY", "object key");
-        String content = SampleInput.optional(args, 2, "AWS_S3_CONTENT", "Testing with the {sdk-java}");
-        Region region = Region.of(SampleInput.optional(args, 3, "AWS_S3_REGION", Region.US_EAST_2.id()));
-        boolean createBucket = SampleInput.optionalBoolean(args, 4, "AWS_S3_CREATE_BUCKET", false);
-        boolean cleanUp = SampleInput.optionalBoolean(args, 5, "AWS_S3_CLEANUP", false);
+        Config config = resolveConfig(args);
 
-        S3Client s3 = S3Client.builder().region(region).build();
+        S3Client s3 = S3Client.builder().region(config.region).build();
         try {
-            if (createBucket) {
-                tutorialSetup(s3, bucket, region);
+            if (config.createBucket) {
+                tutorialSetup(s3, config.bucket, config.region);
             }
 
             System.out.println("Uploading object...");
-            s3.putObject(PutObjectRequest.builder().bucket(bucket).key(key).build(),
-                    RequestBody.fromString(content));
+            s3.putObject(PutObjectRequest.builder().bucket(config.bucket).key(config.key).build(),
+                    RequestBody.fromString(config.content));
             System.out.println("Upload complete");
             System.out.printf("%n");
 
-            if (cleanUp) {
-                cleanUp(s3, bucket, key);
+            if (config.cleanUp) {
+                cleanUp(s3, config.bucket, config.key);
             }
         } finally {
             System.out.println("Closing the connection to {S3}");
@@ -44,6 +39,16 @@ public class SingleS3Upload {
             System.out.println("Connection closed");
             System.out.println("Exiting...");
         }
+    }
+
+    static Config resolveConfig(String[] args) {
+        String bucket = SampleInput.required(args, 0, "AWS_S3_BUCKET", "bucket name");
+        String key = SampleInput.required(args, 1, "AWS_S3_KEY", "object key");
+        String content = SampleInput.optional(args, 2, "AWS_S3_CONTENT", "Testing with the {sdk-java}");
+        Region region = Region.of(SampleInput.optional(args, 3, "AWS_S3_REGION", Region.US_EAST_2.id()));
+        boolean createBucket = SampleInput.optionalBoolean(args, 4, "AWS_S3_CREATE_BUCKET", false);
+        boolean cleanUp = SampleInput.optionalBoolean(args, 5, "AWS_S3_CLEANUP", false);
+        return new Config(bucket, key, content, region, createBucket, cleanUp);
     }
 
     public static void tutorialSetup(S3Client s3Client, String bucketName, Region region) {
@@ -88,5 +93,23 @@ public class SingleS3Upload {
         }
         System.out.println("Cleanup complete");
         System.out.printf("%n");
+    }
+
+    static final class Config {
+        final String bucket;
+        final String key;
+        final String content;
+        final Region region;
+        final boolean createBucket;
+        final boolean cleanUp;
+
+        Config(String bucket, String key, String content, Region region, boolean createBucket, boolean cleanUp) {
+            this.bucket = bucket;
+            this.key = key;
+            this.content = content;
+            this.region = region;
+            this.createBucket = createBucket;
+            this.cleanUp = cleanUp;
+        }
     }
 }
