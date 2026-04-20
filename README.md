@@ -24,6 +24,9 @@ src/main/java/net/jrodolfo/awss3/upload/SingleS3Upload.java
 src/main/java/net/jrodolfo/awss3/upload/MultiPartS3Upload.java
 src/main/java/net/jrodolfo/awss3/download/S3ObjectDownload.java
 src/test/java/net/jrodolfo/awss3/SampleInputTest.java
+src/test/java/net/jrodolfo/awss3/upload/SingleS3UploadConfigTest.java
+src/test/java/net/jrodolfo/awss3/upload/MultiPartS3UploadConfigTest.java
+src/test/java/net/jrodolfo/awss3/download/S3ObjectDownloadConfigTest.java
 ```
 
 ## Requirements
@@ -150,7 +153,7 @@ Arguments:
 2. `filePath`
 3. `key` (optional, defaults to the local file name)
 4. `region` (optional, default `us-east-2`)
-5. `maxThreads` (optional, default `10`)
+5. `maxThreads` (optional, default `10`, currently retained for compatibility)
 6. `multipartThresholdBytes` (optional, default `5242880`)
 
 Example:
@@ -166,6 +169,7 @@ Notes:
 - The bucket must already exist.
 - The sample reads the local file path you provide instead of depending on an old machine-specific path.
 - Files larger than the configured threshold are uploaded with S3 multipart requests.
+- `maxThreads` is currently accepted for compatibility with the older sample interface, but the current implementation uploads parts sequentially.
 
 ### Download Object
 
