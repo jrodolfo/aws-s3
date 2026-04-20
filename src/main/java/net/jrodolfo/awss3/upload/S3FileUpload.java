@@ -49,9 +49,8 @@ public class S3FileUpload {
         String keyName = SampleInput.optional(args, 2, "AWS_S3_KEY",
                 Paths.get(filePath).getFileName().toString());
         Region region = Region.of(SampleInput.optional(args, 3, "AWS_S3_REGION", Region.US_EAST_2.id()));
-        int maxUploadThreads = Integer.parseInt(SampleInput.optional(args, 4, "AWS_S3_MAX_THREADS", "10"));
-        long multipartThreshold = Long.parseLong(SampleInput.optional(args, 5, "AWS_S3_MULTIPART_THRESHOLD", "5242880"));
-        return new Config(bucketName, filePath, keyName, region, maxUploadThreads, multipartThreshold);
+        long multipartThreshold = Long.parseLong(SampleInput.optional(args, 4, "AWS_S3_MULTIPART_THRESHOLD", "5242880"));
+        return new Config(bucketName, filePath, keyName, region, multipartThreshold);
     }
 
     private static void uploadFile(S3Client s3Client, Path path, long fileSizeInBytes, Config config) throws IOException {
@@ -144,16 +143,13 @@ public class S3FileUpload {
         final String filePath;
         final String keyName;
         final Region region;
-        final int maxUploadThreads;
         final long multipartThreshold;
 
-        Config(String bucketName, String filePath, String keyName, Region region, int maxUploadThreads,
-               long multipartThreshold) {
+        Config(String bucketName, String filePath, String keyName, Region region, long multipartThreshold) {
             this.bucketName = bucketName;
             this.filePath = filePath;
             this.keyName = keyName;
             this.region = region;
-            this.maxUploadThreads = maxUploadThreads;
             this.multipartThreshold = multipartThreshold;
         }
     }

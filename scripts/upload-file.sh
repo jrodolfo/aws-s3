@@ -5,14 +5,13 @@ set -eu
 usage() {
   cat <<'EOF'
 Usage:
-  scripts/upload-file.sh <bucket> <file-path> [key] [region] [max-threads] [multipart-threshold-bytes]
+  scripts/upload-file.sh <bucket> <file-path> [key] [region] [multipart-threshold-bytes]
 
 Arguments:
   bucket                     S3 bucket name
   file-path                  Local file path
   key                        Optional S3 object key (default: file name)
   region                     Optional AWS region (default: us-east-2)
-  max-threads                Optional compatibility setting (default: 10)
   multipart-threshold-bytes  Optional threshold in bytes (default: 5242880)
 EOF
 }
@@ -31,8 +30,7 @@ BUCKET=$1
 FILE_PATH=$2
 KEY=${3:-}
 REGION=${4:-us-east-2}
-MAX_THREADS=${5:-10}
-MULTIPART_THRESHOLD=${6:-5242880}
+MULTIPART_THRESHOLD=${5:-5242880}
 
 if [ ! -f "$FILE_PATH" ]; then
   echo "File not found: $FILE_PATH" >&2
@@ -45,7 +43,6 @@ REPO_DIR=$(CDPATH= cd -- "$SCRIPT_DIR/.." && pwd)
 export AWS_S3_BUCKET=$BUCKET
 export AWS_S3_FILE=$FILE_PATH
 export AWS_S3_REGION=$REGION
-export AWS_S3_MAX_THREADS=$MAX_THREADS
 export AWS_S3_MULTIPART_THRESHOLD=$MULTIPART_THRESHOLD
 
 if [ -n "$KEY" ]; then

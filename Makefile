@@ -6,7 +6,7 @@ help:
 		'  make test' \
 		'  make test-integration INTEGRATION_BUCKET=<bucket> [INTEGRATION_REGION=<region>] [INTEGRATION_PROFILE=<profile>]' \
 		'  make upload-text BUCKET=<bucket> KEY=<key> [CONTENT=<content>] [REGION=<region>] [CREATE_BUCKET=false] [CLEANUP=false]' \
-		'  make upload-file BUCKET=<bucket> FILE=<file-path> [KEY=<key>] [REGION=<region>] [MAX_THREADS=10] [MULTIPART_THRESHOLD=5242880]' \
+		'  make upload-file BUCKET=<bucket> FILE=<file-path> [KEY=<key>] [REGION=<region>] [MULTIPART_THRESHOLD=5242880]' \
 		'  make download-object BUCKET=<bucket> KEY=<key> [REGION=<region>] [PROFILE=<profile>]'
 
 test:
@@ -27,7 +27,7 @@ upload-text:
 upload-file:
 	@test -n "$(BUCKET)" || (echo 'BUCKET is required' >&2; exit 1)
 	@test -n "$(FILE)" || (echo 'FILE is required' >&2; exit 1)
-	@./scripts/upload-file.sh "$(BUCKET)" "$(FILE)" "$(KEY)" "$(or $(REGION),us-east-2)" "$(or $(MAX_THREADS),10)" "$(or $(MULTIPART_THRESHOLD),5242880)"
+	@./scripts/upload-file.sh "$(BUCKET)" "$(FILE)" "$(KEY)" "$(or $(REGION),us-east-2)" "$(or $(MULTIPART_THRESHOLD),5242880)"
 
 download-object:
 	@test -n "$(BUCKET)" || (echo 'BUCKET is required' >&2; exit 1)

@@ -90,7 +90,6 @@ Common environment variables:
 - `AWS_S3_CONTENT`
 - `AWS_S3_CREATE_BUCKET`
 - `AWS_S3_CLEANUP`
-- `AWS_S3_MAX_THREADS`
 - `AWS_S3_MULTIPART_THRESHOLD`
 - `AWS_PROFILE`
 
@@ -202,15 +201,14 @@ Arguments:
 2. `filePath`
 3. `key` (optional, defaults to the local file name)
 4. `region` (optional, default `us-east-2`)
-5. `maxThreads` (optional, default `10`, currently retained for compatibility)
-6. `multipartThresholdBytes` (optional, default `5242880`)
+5. `multipartThresholdBytes` (optional, default `5242880`)
 
 Example:
 
 ```bash
 mvn -q exec:java \
   -Dexec.mainClass=net.jrodolfo.awss3.upload.S3FileUpload \
-  -Dexec.args="my-s3-sample-bucket /path/to/file.zip file.zip us-east-2 10 5242880"
+  -Dexec.args="my-s3-sample-bucket /path/to/file.zip file.zip us-east-2 5242880"
 ```
 
 Notes:
@@ -218,7 +216,6 @@ Notes:
 - The bucket must already exist.
 - The sample reads the local file path you provide instead of depending on an old machine-specific path.
 - Files larger than the configured threshold are uploaded with S3 multipart requests.
-- `maxThreads` is currently accepted for compatibility with the older sample interface, but the current implementation uploads parts sequentially.
 
 ### Download Object
 
@@ -258,7 +255,7 @@ Good next steps for the repository are:
 
 - add one end-to-end sample workflow with upload and download together
 - decide whether to keep the current sample names or rename them to match their behavior more clearly
-- decide whether to remove or redesign compatibility inputs such as `maxThreads`
+- add a small `.env.example` or setup guide for the integration test workflow
 
 ## References
 
