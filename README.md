@@ -10,7 +10,7 @@ The code was written over time to capture working examples, not to form a single
 - `MultiPartS3Upload`: upload a local file using multipart transfer support.
 - `GetObject2`: download an object and demonstrate a few retrieval options.
 
-The samples do not share one uniform AWS client style yet, but they are now configured in a consistent way at runtime.
+All samples now use the AWS SDK for Java v2 client style and share the same runtime configuration approach.
 
 ## Project Layout
 
@@ -19,7 +19,7 @@ src/main/java/com/example/awss3/SampleInput.java
 src/main/java/com/example/awss3/upload/SingleS3Upload.java
 src/main/java/com/example/awss3/upload/MultiPartS3Upload.java
 src/main/java/com/example/awss3/download/GetObject2.java
-src/test/java/com/example/awss3/SingleS3UploadTest.java
+src/test/java/com/example/awss3/SampleInputTest.java
 ```
 
 ## Requirements
@@ -35,7 +35,7 @@ src/test/java/com/example/awss3/SingleS3UploadTest.java
 mvn test
 ```
 
-The current test suite is only a placeholder smoke test. It does not exercise real S3 behavior.
+The test suite covers runtime input parsing and sample configuration behavior. It does not exercise real S3 operations.
 
 ## Credentials
 
@@ -120,6 +120,7 @@ Notes:
 
 - The bucket must already exist.
 - The sample reads the local file path you provide instead of depending on an old machine-specific path.
+- Files larger than the configured threshold are uploaded with S3 multipart requests.
 
 ### Download Object
 
@@ -157,10 +158,9 @@ It is not intended to be a production-ready S3 library.
 
 Good next steps for the repository are:
 
-- add real tests around argument handling and helper logic
-- modernize and simplify the Maven dependencies
-- standardize the samples around one AWS client style
+- add integration tests that run only when AWS credentials and a test bucket are available
 - add one end-to-end sample workflow with upload and download together
+- decide whether to keep the current sample names or rename them to match their behavior more clearly
 
 ## References
 

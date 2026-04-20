@@ -1,30 +1,33 @@
 package com.example.awss3.upload;
 
-import com.amazonaws.AmazonClientException;
-import com.amazonaws.auth.AWSCredentialsProvider;
-import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
 import com.example.awss3.SampleInput;
-import com.amazonaws.event.ProgressEvent;
-import com.amazonaws.event.ProgressListener;
-import com.amazonaws.regions.Regions;
-import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.AmazonS3ClientBuilder;
-import com.amazonaws.services.s3.model.PutObjectRequest;
-import com.amazonaws.services.s3.transfer.Transfer;
-import com.amazonaws.services.s3.transfer.TransferManager;
-import com.amazonaws.services.s3.transfer.TransferManagerBuilder;
-import com.amazonaws.services.s3.transfer.Upload;
+import software.amazon.awssdk.core.sync.RequestBody;
+import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.AbortMultipartUploadRequest;
+import software.amazon.awssdk.services.s3.model.CompleteMultipartUploadRequest;
+import software.amazon.awssdk.services.s3.model.CompletedMultipartUpload;
+import software.amazon.awssdk.services.s3.model.CompletedPart;
+import software.amazon.awssdk.services.s3.model.CreateMultipartUploadRequest;
+import software.amazon.awssdk.services.s3.model.CreateMultipartUploadResponse;
+import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import software.amazon.awssdk.services.s3.model.S3Exception;
+import software.amazon.awssdk.services.s3.model.UploadPartRequest;
+import software.amazon.awssdk.services.s3.model.UploadPartResponse;
 
-import java.io.File;
+import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
-import java.util.concurrent.Executors;
+import java.util.ArrayList;
+import java.util.List;
 
 public class MultiPartS3Upload {
+    private static final long MIN_MULTIPART_PART_SIZE = 5L * 1024L * 1024L;
 
     public static void main(String[] args) throws Exception {
         Config config = resolveConfig(args);
@@ -35,36 +38,8 @@ public class MultiPartS3Upload {
         System.out.println("Uploading file " + config.filePath +
                 ", size " + fileSizeInBytes + " bytes, " + "to the AWS S3 bucket " + config.bucketName + ".");
 
-        AWSCredentialsProvider credentialsProvider = new DefaultAWSCredentialsProviderChain();
-        AmazonS3 s3Client = AmazonS3ClientBuilder
-                .standard()
-                .withCredentials(credentialsProvider)
-                .withRegion(config.region)
-                .build();
-
-        TransferManager transferManager = TransferManagerBuilder
-                .standard()
-                .withS3Client(s3Client)
-                .withMultipartUploadThreshold(config.uploadThreshold)
-                .withExecutorFactory(() -> Executors.newFixedThreadPool(config.maxUploadThreads))
-                .build();
-
-        PutObjectRequest request = new PutObjectRequest(config.bucketName, config.keyName, new File(config.filePath));
-        Upload upload = transferManager.upload(request);
-        upload.addProgressListener(createProgressListener(upload));
-
-        try {
-            upload.waitForCompletion();
-            Calendar calendar = Calendar.getInstance();
-            SimpleDateFormat formatter = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
-            System.out.println(formatter.format(calendar.getTime()) + " - Upload is completed.");
-        } catch (AmazonClientException e) {
-            System.err.println("An error occurred while uploading the file " + config.filePath +
-                    " to the AWS S3 bucket " + config.bucketName + ".");
-            e.printStackTrace();
-            throw e;
-        } finally {
-            transferManager.shutdownNow(false);
+        try (S3Client s3Client = S3Client.builder().region(config.region).build()) {
+            uploadFile(s3Client, path, fileSizeInBytes, config);
         }
     }
 
@@ -73,47 +48,113 @@ public class MultiPartS3Upload {
         String bucketName = SampleInput.required(args, 0, "AWS_S3_BUCKET", "bucket name");
         String keyName = SampleInput.optional(args, 2, "AWS_S3_KEY",
                 Paths.get(filePath).getFileName().toString());
-        Regions region = Regions.fromName(SampleInput.optional(args, 3, "AWS_S3_REGION", Regions.US_EAST_2.getName()));
+        Region region = Region.of(SampleInput.optional(args, 3, "AWS_S3_REGION", Region.US_EAST_2.id()));
         int maxUploadThreads = Integer.parseInt(SampleInput.optional(args, 4, "AWS_S3_MAX_THREADS", "10"));
-        long uploadThreshold = Long.parseLong(SampleInput.optional(args, 5, "AWS_S3_MULTIPART_THRESHOLD", "5242880"));
-        return new Config(bucketName, filePath, keyName, region, maxUploadThreads, uploadThreshold);
+        long multipartThreshold = Long.parseLong(SampleInput.optional(args, 5, "AWS_S3_MULTIPART_THRESHOLD", "5242880"));
+        return new Config(bucketName, filePath, keyName, region, maxUploadThreads, multipartThreshold);
     }
 
-    private static ProgressListener createProgressListener(Transfer transfer) {
-        return new ProgressListener() {
-            private double previousTransferred;
+    private static void uploadFile(S3Client s3Client, Path path, long fileSizeInBytes, Config config) throws IOException {
+        if (fileSizeInBytes <= config.multipartThreshold) {
+            s3Client.putObject(PutObjectRequest.builder()
+                            .bucket(config.bucketName)
+                            .key(config.keyName)
+                            .build(),
+                    RequestBody.fromFile(path));
+            logCompletion();
+            return;
+        }
 
-            @Override
-            public synchronized void progressChanged(ProgressEvent event) {
-                double transferred = transfer.getProgress().getPercentTransferred();
-                Calendar calendar;
-                SimpleDateFormat formatter = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
-                if (transferred >= (previousTransferred + 10.0)) {
-                    calendar = Calendar.getInstance();
-                    System.out.println(formatter.format(calendar.getTime()) + " - Upload percentage: " +
-                            new DecimalFormat("#.#").format(transferred) + "%");
-                    previousTransferred = transferred;
+        String uploadId = null;
+        try {
+            CreateMultipartUploadResponse createMultipartUploadResponse = s3Client.createMultipartUpload(
+                    CreateMultipartUploadRequest.builder()
+                            .bucket(config.bucketName)
+                            .key(config.keyName)
+                            .build());
+            uploadId = createMultipartUploadResponse.uploadId();
+
+            long partSize = Math.max(config.multipartThreshold, MIN_MULTIPART_PART_SIZE);
+            List<CompletedPart> completedParts = new ArrayList<>();
+            long uploadedBytes = 0L;
+            int partNumber = 1;
+
+            try (RandomAccessFile file = new RandomAccessFile(path.toFile(), "r")) {
+                while (uploadedBytes < fileSizeInBytes) {
+                    long currentPartSize = Math.min(partSize, fileSizeInBytes - uploadedBytes);
+                    byte[] partBytes = new byte[(int) currentPartSize];
+                    file.readFully(partBytes);
+
+                    UploadPartResponse uploadPartResponse = s3Client.uploadPart(
+                            UploadPartRequest.builder()
+                                    .bucket(config.bucketName)
+                                    .key(config.keyName)
+                                    .uploadId(uploadId)
+                                    .partNumber(partNumber)
+                                    .contentLength(currentPartSize)
+                                    .build(),
+                            RequestBody.fromBytes(partBytes));
+
+                    completedParts.add(CompletedPart.builder()
+                            .partNumber(partNumber)
+                            .eTag(uploadPartResponse.eTag())
+                            .build());
+
+                    uploadedBytes += currentPartSize;
+                    logProgress(uploadedBytes, fileSizeInBytes);
+                    partNumber++;
                 }
             }
+
+            s3Client.completeMultipartUpload(CompleteMultipartUploadRequest.builder()
+                    .bucket(config.bucketName)
+                    .key(config.keyName)
+                    .uploadId(uploadId)
+                    .multipartUpload(CompletedMultipartUpload.builder().parts(completedParts).build())
+                    .build());
+            logCompletion();
+        } catch (S3Exception | IOException e) {
+            if (uploadId != null) {
+                s3Client.abortMultipartUpload(AbortMultipartUploadRequest.builder()
+                        .bucket(config.bucketName)
+                        .key(config.keyName)
+                        .uploadId(uploadId)
+                        .build());
+            }
+            throw e;
         };
+    }
+
+    private static void logProgress(long uploadedBytes, long totalBytes) {
+        double transferred = (uploadedBytes * 100.0) / totalBytes;
+        Calendar calendar = Calendar.getInstance();
+        SimpleDateFormat formatter = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
+        System.out.println(formatter.format(calendar.getTime()) + " - Upload percentage: " +
+                new DecimalFormat("#.#").format(transferred) + "%");
+    }
+
+    private static void logCompletion() {
+        Calendar calendar = Calendar.getInstance();
+        SimpleDateFormat formatter = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
+        System.out.println(formatter.format(calendar.getTime()) + " - Upload is completed.");
     }
 
     static final class Config {
         final String bucketName;
         final String filePath;
         final String keyName;
-        final Regions region;
+        final Region region;
         final int maxUploadThreads;
-        final long uploadThreshold;
+        final long multipartThreshold;
 
-        Config(String bucketName, String filePath, String keyName, Regions region, int maxUploadThreads,
-               long uploadThreshold) {
+        Config(String bucketName, String filePath, String keyName, Region region, int maxUploadThreads,
+               long multipartThreshold) {
             this.bucketName = bucketName;
             this.filePath = filePath;
             this.keyName = keyName;
             this.region = region;
             this.maxUploadThreads = maxUploadThreads;
-            this.uploadThreshold = uploadThreshold;
+            this.multipartThreshold = multipartThreshold;
         }
     }
 }
