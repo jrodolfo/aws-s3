@@ -2,7 +2,7 @@
 
 This repository contains small Java examples for uploading to and downloading from Amazon S3 using the AWS SDK for Java.
 
-The project is organized as sample entry points rather than a production-ready application. The source code currently mixes AWS SDK for Java v1 and v2 examples:
+The project is organized as sample entry points rather than a production-ready application. The project currently uses examples built with two versions of the AWS SDK for Java: the older v1 SDK and the newer v2 SDK:
 
 - `SingleS3Upload`: uploads a small string object with AWS SDK v2.
 - `MultiPartS3Upload`: uploads a file with multipart transfer support using AWS SDK v1.
