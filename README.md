@@ -25,6 +25,7 @@ scripts/
   upload-text.sh
   upload-file.sh
   download-object.sh
+  roundtrip-object.sh
 src/
   main/java/net/jrodolfo/awss3/
     SampleInput.java
@@ -107,6 +108,7 @@ The `Makefile` provides a compact command surface for the most common tasks:
 - `make upload-text BUCKET=my-bucket KEY=hello.txt`
 - `make upload-file BUCKET=my-bucket FILE=/path/to/file.zip`
 - `make download-object BUCKET=my-bucket KEY=hello.txt`
+- `make roundtrip-object BUCKET=my-bucket KEY=hello.txt`
 
 Examples:
 
@@ -116,6 +118,27 @@ make test-integration INTEGRATION_BUCKET=my-s3-sample-bucket
 make upload-text BUCKET=my-s3-sample-bucket KEY=hello.txt CONTENT="hello from make"
 make upload-file BUCKET=my-s3-sample-bucket FILE=/path/to/file.zip
 make download-object BUCKET=my-s3-sample-bucket KEY=hello.txt
+make roundtrip-object BUCKET=my-s3-sample-bucket KEY=hello.txt CONTENT="hello from make"
+```
+
+## End-To-End Example
+
+The quickest way to try the repository end to end is the round-trip script:
+
+```bash
+make roundtrip-object BUCKET=my-s3-sample-bucket KEY=hello.txt CONTENT="hello from make"
+```
+
+This flow:
+
+- uploads a text object
+- downloads the same object immediately after
+- prints the downloaded content to the console
+
+If the bucket does not exist yet, you can create it during the upload step:
+
+```bash
+make roundtrip-object BUCKET=my-s3-sample-bucket KEY=hello.txt CONTENT="hello from make" CREATE_BUCKET=true
 ```
 
 ## Integration Test
@@ -153,6 +176,7 @@ The repository includes small wrapper scripts for the three sample flows:
 - `scripts/upload-text.sh`
 - `scripts/upload-file.sh`
 - `scripts/download-object.sh`
+- `scripts/roundtrip-object.sh`
 
 Each script validates the required arguments, sets the matching environment variables, and then runs the corresponding Java class with Maven.
 
@@ -162,6 +186,7 @@ Examples:
 scripts/upload-text.sh my-s3-sample-bucket hello.txt "hello from shell"
 scripts/upload-file.sh my-s3-sample-bucket /path/to/file.zip
 scripts/download-object.sh my-s3-sample-bucket hello.txt
+scripts/roundtrip-object.sh my-s3-sample-bucket hello.txt "hello from shell"
 ```
 
 You can also run any script with `--help` to see its expected arguments.
@@ -253,7 +278,6 @@ It is not intended to be a production-ready S3 library.
 
 Good next steps for the repository are:
 
-- add one end-to-end sample workflow with upload and download together
 - decide whether to keep the current sample names or rename them to match their behavior more clearly
 - add a small `.env.example` or setup guide for the integration test workflow
 

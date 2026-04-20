@@ -1,4 +1,4 @@
-.PHONY: help test test-integration upload-text upload-file download-object
+.PHONY: help test test-integration upload-text upload-file download-object roundtrip-object
 
 help:
 	@printf '%s\n' \
@@ -7,7 +7,8 @@ help:
 		'  make test-integration INTEGRATION_BUCKET=<bucket> [INTEGRATION_REGION=<region>] [INTEGRATION_PROFILE=<profile>]' \
 		'  make upload-text BUCKET=<bucket> KEY=<key> [CONTENT=<content>] [REGION=<region>] [CREATE_BUCKET=false] [CLEANUP=false]' \
 		'  make upload-file BUCKET=<bucket> FILE=<file-path> [KEY=<key>] [REGION=<region>] [MULTIPART_THRESHOLD=5242880]' \
-		'  make download-object BUCKET=<bucket> KEY=<key> [REGION=<region>] [PROFILE=<profile>]'
+		'  make download-object BUCKET=<bucket> KEY=<key> [REGION=<region>] [PROFILE=<profile>]' \
+		'  make roundtrip-object BUCKET=<bucket> KEY=<key> [CONTENT=<content>] [REGION=<region>] [PROFILE=<profile>] [CREATE_BUCKET=false]'
 
 test:
 	mvn test
@@ -33,3 +34,8 @@ download-object:
 	@test -n "$(BUCKET)" || (echo 'BUCKET is required' >&2; exit 1)
 	@test -n "$(KEY)" || (echo 'KEY is required' >&2; exit 1)
 	@./scripts/download-object.sh "$(BUCKET)" "$(KEY)" "$(or $(REGION),us-east-2)" "$(PROFILE)"
+
+roundtrip-object:
+	@test -n "$(BUCKET)" || (echo 'BUCKET is required' >&2; exit 1)
+	@test -n "$(KEY)" || (echo 'KEY is required' >&2; exit 1)
+	@./scripts/roundtrip-object.sh "$(BUCKET)" "$(KEY)" "$(or $(CONTENT),Testing with the {sdk-java})" "$(or $(REGION),us-east-2)" "$(PROFILE)" "$(or $(CREATE_BUCKET),false)"
