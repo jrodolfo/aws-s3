@@ -1,5 +1,7 @@
 #!/bin/sh
 
+# Runs the text-upload Java sample through Maven with minimal shell validation.
+
 set -eu
 
 require_command() {

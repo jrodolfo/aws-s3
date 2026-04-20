@@ -219,6 +219,19 @@ The test suite covers runtime input parsing and sample configuration behavior. I
 
 GitHub Actions runs `mvn test` automatically on pushes to `main` and on pull requests. The workflow file lives at `.github/workflows/ci.yml`.
 
+## Troubleshooting
+
+- `Error: Unable to reach AWS S3...`
+  Check your AWS credentials, active profile, network access, and region.
+- `Error: S3 request failed...`
+  Confirm the bucket, object key, region, and IAM permissions for the operation.
+- `Error: Object not found in S3...`
+  Double-check the bucket, key, and region used by the download command.
+- `Error: Unable to read the local file...`
+  Confirm the local file path exists and is readable before using `S3FileUpload`.
+- `Required command not found: mvn`
+  Install Maven and ensure `mvn` is available on your `PATH`.
+
 ## References
 
 - [AWS SDK for Java 2.x developer guide](https://docs.aws.amazon.com/sdk-for-java/latest/developer-guide/get-started.html)

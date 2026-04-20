@@ -1,5 +1,7 @@
 #!/bin/sh
 
+# Runs the end-to-end text-object round trip by composing the upload and download scripts.
+
 set -eu
 
 require_command() {

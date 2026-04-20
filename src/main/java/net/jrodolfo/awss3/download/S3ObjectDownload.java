@@ -18,8 +18,15 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 
+/**
+ * Downloads an object from S3 and demonstrates a full read, a ranged read,
+ * and a request with response-header overrides.
+ */
 public class S3ObjectDownload {
 
+    /**
+     * Entry point for the download sample.
+     */
     public static void main(String[] args) throws IOException {
         Config config = null;
         try {
@@ -67,6 +74,9 @@ public class S3ObjectDownload {
         }
     }
 
+    /**
+     * Resolves runtime configuration for the download sample.
+     */
     static Config resolveConfig(String[] args) {
         Region clientRegion = Region.of(
                 SampleInput.optional(args, 2, "AWS_S3_REGION", Region.US_EAST_2.id()));
@@ -76,6 +86,9 @@ public class S3ObjectDownload {
         return new Config(bucketName, key, clientRegion, profileName);
     }
 
+    /**
+     * Creates an S3 client using either the default credential chain or a named profile.
+     */
     private static S3Client buildClient(Config config) {
         S3ClientBuilder builder = S3Client.builder().region(config.clientRegion);
         if (config.profileName == null) {
@@ -86,6 +99,9 @@ public class S3ObjectDownload {
         return builder.build();
     }
 
+    /**
+     * Prints a text response stream line by line.
+     */
     private static void displayTextInputStream(InputStream input) throws IOException {
         // Read the text input stream one line at a time and display each line
         BufferedReader reader = new BufferedReader(new InputStreamReader(input));
@@ -105,6 +121,9 @@ public class S3ObjectDownload {
         System.exit(1);
     }
 
+    /**
+     * Immutable runtime configuration for the download sample.
+     */
     static final class Config {
         final String bucketName;
         final String key;

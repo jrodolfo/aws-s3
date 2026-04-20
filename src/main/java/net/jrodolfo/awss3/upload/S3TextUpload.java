@@ -13,8 +13,15 @@ import software.amazon.awssdk.services.s3.model.HeadBucketRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.S3Exception;
 
+/**
+ * Uploads a small in-memory text object to S3 and can optionally create or
+ * clean up the target bucket.
+ */
 public class S3TextUpload {
 
+    /**
+     * Entry point for the text-upload sample.
+     */
     public static void main(String[] args) {
         try {
             Config config = resolveConfig(args);
@@ -49,6 +56,9 @@ public class S3TextUpload {
         }
     }
 
+    /**
+     * Resolves runtime configuration for the text-upload sample.
+     */
     static Config resolveConfig(String[] args) {
         String bucket = SampleInput.required(args, 0, "AWS_S3_BUCKET", "bucket name");
         String key = SampleInput.required(args, 1, "AWS_S3_KEY", "object key");
@@ -59,6 +69,9 @@ public class S3TextUpload {
         return new Config(bucket, key, content, region, createBucket, cleanUp);
     }
 
+    /**
+     * Creates the target bucket and waits until it becomes available.
+     */
     public static void tutorialSetup(S3Client s3Client, String bucketName, Region region) {
         CreateBucketRequest.Builder requestBuilder = CreateBucketRequest.builder().bucket(bucketName);
         if (!Region.US_EAST_1.equals(region)) {
@@ -77,6 +90,9 @@ public class S3TextUpload {
         System.out.printf("%n");
     }
 
+    /**
+     * Deletes the uploaded object and then deletes the bucket used by the sample.
+     */
     public static void cleanUp(S3Client s3Client, String bucketName, String keyName) {
         System.out.println("Cleaning up...");
         System.out.println("Deleting object: " + keyName);
@@ -101,6 +117,9 @@ public class S3TextUpload {
         System.exit(1);
     }
 
+    /**
+     * Immutable runtime configuration for the text-upload sample.
+     */
     static final class Config {
         final String bucket;
         final String key;

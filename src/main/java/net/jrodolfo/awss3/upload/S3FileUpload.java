@@ -27,9 +27,16 @@ import java.util.Calendar;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Uploads a local file to S3, using multipart upload when the file exceeds the
+ * configured threshold.
+ */
 public class S3FileUpload {
     private static final long MIN_MULTIPART_PART_SIZE = 5L * 1024L * 1024L;
 
+    /**
+     * Entry point for the file-upload sample.
+     */
     public static void main(String[] args) throws Exception {
         try {
             Config config = resolveConfig(args);
@@ -48,6 +55,9 @@ public class S3FileUpload {
         }
     }
 
+    /**
+     * Resolves runtime configuration for the file-upload sample.
+     */
     static Config resolveConfig(String[] args) {
         String filePath = SampleInput.required(args, 1, "AWS_S3_FILE", "file path");
         String bucketName = SampleInput.required(args, 0, "AWS_S3_BUCKET", "bucket name");
@@ -58,6 +68,9 @@ public class S3FileUpload {
         return new Config(bucketName, filePath, keyName, region, multipartThreshold);
     }
 
+    /**
+     * Uploads the given local file either with a single put or multipart upload.
+     */
     public static void uploadFile(S3Client s3Client, Path path, String bucketName, String keyName,
                                   long multipartThreshold) throws IOException {
         long fileSizeInBytes = Files.size(path);
@@ -158,6 +171,9 @@ public class S3FileUpload {
         System.exit(1);
     }
 
+    /**
+     * Immutable runtime configuration for the file-upload sample.
+     */
     static final class Config {
         final String bucketName;
         final String filePath;

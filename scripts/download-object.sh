@@ -1,5 +1,7 @@
 #!/bin/sh
 
+# Runs the object-download Java sample through Maven with minimal shell validation.
+
 set -eu
 
 require_command() {
