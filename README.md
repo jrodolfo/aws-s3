@@ -6,8 +6,8 @@ The code was written over time to capture working examples, not to form a single
 
 ## What Is Here
 
-- `SingleS3Upload`: upload a small text object to S3.
-- `MultiPartS3Upload`: upload a local file using multipart transfer support.
+- `S3TextUpload`: upload a small text object to S3.
+- `S3FileUpload`: upload a local file using multipart transfer support.
 - `S3ObjectDownload`: download an object and demonstrate a few retrieval options.
 
 All samples now use the AWS SDK for Java v2 client style and share the same runtime configuration approach.
@@ -29,8 +29,8 @@ src/
   main/java/net/jrodolfo/awss3/
     SampleInput.java
     upload/
-      SingleS3Upload.java
-      MultiPartS3Upload.java
+      S3TextUpload.java
+      S3FileUpload.java
     download/
       S3ObjectDownload.java
   test/java/net/jrodolfo/awss3/
@@ -38,8 +38,8 @@ src/
     integration/
       S3IntegrationTest.java
     upload/
-      SingleS3UploadConfigTest.java
-      MultiPartS3UploadConfigTest.java
+      S3TextUploadConfigTest.java
+      S3FileUploadConfigTest.java
     download/
       S3ObjectDownloadConfigTest.java
 ```
@@ -184,7 +184,7 @@ Example:
 
 ```bash
 mvn -q exec:java \
-  -Dexec.mainClass=net.jrodolfo.awss3.upload.SingleS3Upload \
+  -Dexec.mainClass=net.jrodolfo.awss3.upload.S3TextUpload \
   -Dexec.args="my-s3-sample-bucket hello.txt 'hello from java' us-east-2 false false"
 ```
 
@@ -209,7 +209,7 @@ Example:
 
 ```bash
 mvn -q exec:java \
-  -Dexec.mainClass=net.jrodolfo.awss3.upload.MultiPartS3Upload \
+  -Dexec.mainClass=net.jrodolfo.awss3.upload.S3FileUpload \
   -Dexec.args="my-s3-sample-bucket /path/to/file.zip file.zip us-east-2 10 5242880"
 ```
 

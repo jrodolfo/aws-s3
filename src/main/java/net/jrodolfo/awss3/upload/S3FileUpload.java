@@ -26,7 +26,7 @@ import java.util.Calendar;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MultiPartS3Upload {
+public class S3FileUpload {
     private static final long MIN_MULTIPART_PART_SIZE = 5L * 1024L * 1024L;
 
     public static void main(String[] args) throws Exception {

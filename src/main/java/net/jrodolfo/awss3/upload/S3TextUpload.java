@@ -13,7 +13,7 @@ import software.amazon.awssdk.services.s3.model.S3Exception;
 import software.amazon.awssdk.services.s3.S3Client;
 
 
-public class SingleS3Upload {
+public class S3TextUpload {
 
     public static void main(String[] args) {
         Config config = resolveConfig(args);

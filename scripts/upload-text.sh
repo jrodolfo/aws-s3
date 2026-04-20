@@ -45,4 +45,4 @@ export AWS_S3_CREATE_BUCKET=$CREATE_BUCKET
 export AWS_S3_CLEANUP=$CLEANUP
 
 cd "$REPO_DIR"
-exec mvn -q exec:java -Dexec.mainClass=net.jrodolfo.awss3.upload.SingleS3Upload
+exec mvn -q exec:java -Dexec.mainClass=net.jrodolfo.awss3.upload.S3TextUpload

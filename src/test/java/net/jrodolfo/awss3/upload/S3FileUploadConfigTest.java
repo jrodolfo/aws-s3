@@ -5,11 +5,11 @@ import software.amazon.awssdk.regions.Region;
 
 import static org.junit.Assert.assertEquals;
 
-public class MultiPartS3UploadConfigTest {
+public class S3FileUploadConfigTest {
 
     @Test
     public void resolveConfigUsesFileNameAsDefaultKey() {
-        MultiPartS3Upload.Config config = MultiPartS3Upload.resolveConfig(
+        S3FileUpload.Config config = S3FileUpload.resolveConfig(
                 new String[]{"bucket-a", "/tmp/archive.zip"});
 
         assertEquals("bucket-a", config.bucketName);
@@ -22,7 +22,7 @@ public class MultiPartS3UploadConfigTest {
 
     @Test
     public void resolveConfigUsesExplicitOptionalArguments() {
-        MultiPartS3Upload.Config config = MultiPartS3Upload.resolveConfig(
+        S3FileUpload.Config config = S3FileUpload.resolveConfig(
                 new String[]{"bucket-a", "/tmp/archive.zip", "s3-key.zip", "us-east-1", "4", "1024"});
 
         assertEquals("s3-key.zip", config.keyName);

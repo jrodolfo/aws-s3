@@ -7,11 +7,11 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-public class SingleS3UploadConfigTest {
+public class S3TextUploadConfigTest {
 
     @Test
     public void resolveConfigUsesDefaultsForOptionalValues() {
-        SingleS3Upload.Config config = SingleS3Upload.resolveConfig(new String[]{"bucket-a", "hello.txt"});
+        S3TextUpload.Config config = S3TextUpload.resolveConfig(new String[]{"bucket-a", "hello.txt"});
 
         assertEquals("bucket-a", config.bucket);
         assertEquals("hello.txt", config.key);
@@ -23,7 +23,7 @@ public class SingleS3UploadConfigTest {
 
     @Test
     public void resolveConfigUsesExplicitOptionalArguments() {
-        SingleS3Upload.Config config = SingleS3Upload.resolveConfig(
+        S3TextUpload.Config config = S3TextUpload.resolveConfig(
                 new String[]{"bucket-a", "hello.txt", "payload", "us-east-1", "true", "true"});
 
         assertEquals("payload", config.content);

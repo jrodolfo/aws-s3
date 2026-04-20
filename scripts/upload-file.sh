@@ -53,4 +53,4 @@ if [ -n "$KEY" ]; then
 fi
 
 cd "$REPO_DIR"
-exec mvn -q exec:java -Dexec.mainClass=net.jrodolfo.awss3.upload.MultiPartS3Upload
+exec mvn -q exec:java -Dexec.mainClass=net.jrodolfo.awss3.upload.S3FileUpload
