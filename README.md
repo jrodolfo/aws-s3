@@ -15,6 +15,7 @@ All samples now use the AWS SDK for Java v2 client style and share the same runt
 ## Project Layout
 
 ```text
+Makefile
 scripts/upload-text.sh
 scripts/upload-file.sh
 scripts/download-object.sh
@@ -73,7 +74,26 @@ Common environment variables:
 
 ## Running The Samples
 
-You can run the samples either through the shell scripts in `scripts/` or by calling the Java classes directly with Maven.
+You can run the samples through `make`, through the shell scripts in `scripts/`, or by calling the Java classes directly with Maven.
+
+## Make Targets
+
+The `Makefile` provides a compact command surface for the most common tasks:
+
+- `make help`
+- `make test`
+- `make upload-text BUCKET=my-bucket KEY=hello.txt`
+- `make upload-file BUCKET=my-bucket FILE=/path/to/file.zip`
+- `make download-object BUCKET=my-bucket KEY=hello.txt`
+
+Examples:
+
+```bash
+make test
+make upload-text BUCKET=my-s3-sample-bucket KEY=hello.txt CONTENT="hello from make"
+make upload-file BUCKET=my-s3-sample-bucket FILE=/path/to/file.zip
+make download-object BUCKET=my-s3-sample-bucket KEY=hello.txt
+```
 
 ## Scripts
 
