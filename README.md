@@ -18,6 +18,7 @@ All samples now use the AWS SDK for Java v2 client style and share the same runt
 Makefile
 LICENSE
 README.md
+.env.example
 .github/
   workflows/
     ci.yml
@@ -74,6 +75,8 @@ aws configure
 
 `S3ObjectDownload` can also use a named profile if you pass one explicitly.
 
+For a quick local starting point, the repository also includes [.env.example](./.env.example) with placeholder values for the common sample flows and the optional integration test.
+
 ## Runtime Configuration
 
 Each sample now follows the same input pattern:
@@ -93,6 +96,8 @@ Common environment variables:
 - `AWS_S3_CLEANUP`
 - `AWS_S3_MULTIPART_THRESHOLD`
 - `AWS_PROFILE`
+
+The repository does not load `.env` files automatically. The example file is there as a setup template and reference for the variables you may want to export in your shell before running the samples.
 
 ## Running The Samples
 
@@ -162,6 +167,8 @@ Optional variables:
 
 - `AWS_S3_INTEGRATION_REGION` with default `us-east-2`
 - `AWS_S3_INTEGRATION_PROFILE` to use a named AWS profile
+
+The values for these can also be copied from `.env.example` and adjusted for your environment.
 
 You can also run it through `make`:
 
