@@ -182,10 +182,10 @@ mvn -q exec:java \
 
 The repository includes an opt-in integration test that performs a real S3 round trip:
 
-- upload a temporary object
-- download the same object
-- verify the content matches
-- delete the temporary object
+- upload and download a temporary text object
+- upload and download a temporary local file
+- verify the downloaded content matches
+- delete the temporary objects
 
 Normal `mvn test` runs stay lightweight. The integration test is skipped unless `AWS_S3_INTEGRATION_BUCKET` is set.
 

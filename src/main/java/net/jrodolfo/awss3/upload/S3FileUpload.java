@@ -33,14 +33,8 @@ public class S3FileUpload {
     public static void main(String[] args) throws Exception {
         try {
             Config config = resolveConfig(args);
-            Path path = Paths.get(config.filePath);
-            long fileSizeInBytes = Files.size(path);
-
-            System.out.println("Uploading file " + config.filePath +
-                    ", size " + fileSizeInBytes + " bytes, " + "to the AWS S3 bucket " + config.bucketName + ".");
-
             try (S3Client s3Client = S3Client.builder().region(config.region).build()) {
-                uploadFile(s3Client, path, fileSizeInBytes, config);
+                uploadFile(s3Client, Paths.get(config.filePath), config.bucketName, config.keyName, config.multipartThreshold);
             }
         } catch (IllegalArgumentException e) {
             fail(e.getMessage());
@@ -64,11 +58,17 @@ public class S3FileUpload {
         return new Config(bucketName, filePath, keyName, region, multipartThreshold);
     }
 
-    private static void uploadFile(S3Client s3Client, Path path, long fileSizeInBytes, Config config) throws IOException {
-        if (fileSizeInBytes <= config.multipartThreshold) {
+    public static void uploadFile(S3Client s3Client, Path path, String bucketName, String keyName,
+                                  long multipartThreshold) throws IOException {
+        long fileSizeInBytes = Files.size(path);
+
+        System.out.println("Uploading file " + path +
+                ", size " + fileSizeInBytes + " bytes, " + "to the AWS S3 bucket " + bucketName + ".");
+
+        if (fileSizeInBytes <= multipartThreshold) {
             s3Client.putObject(PutObjectRequest.builder()
-                            .bucket(config.bucketName)
-                            .key(config.keyName)
+                            .bucket(bucketName)
+                            .key(keyName)
                             .build(),
                     RequestBody.fromFile(path));
             logCompletion();
@@ -79,12 +79,12 @@ public class S3FileUpload {
         try {
             CreateMultipartUploadResponse createMultipartUploadResponse = s3Client.createMultipartUpload(
                     CreateMultipartUploadRequest.builder()
-                            .bucket(config.bucketName)
-                            .key(config.keyName)
+                            .bucket(bucketName)
+                            .key(keyName)
                             .build());
             uploadId = createMultipartUploadResponse.uploadId();
 
-            long partSize = Math.max(config.multipartThreshold, MIN_MULTIPART_PART_SIZE);
+            long partSize = Math.max(multipartThreshold, MIN_MULTIPART_PART_SIZE);
             List<CompletedPart> completedParts = new ArrayList<>();
             long uploadedBytes = 0L;
             int partNumber = 1;
@@ -97,8 +97,8 @@ public class S3FileUpload {
 
                     UploadPartResponse uploadPartResponse = s3Client.uploadPart(
                             UploadPartRequest.builder()
-                                    .bucket(config.bucketName)
-                                    .key(config.keyName)
+                                    .bucket(bucketName)
+                                    .key(keyName)
                                     .uploadId(uploadId)
                                     .partNumber(partNumber)
                                     .contentLength(currentPartSize)
@@ -117,8 +117,8 @@ public class S3FileUpload {
             }
 
             s3Client.completeMultipartUpload(CompleteMultipartUploadRequest.builder()
-                    .bucket(config.bucketName)
-                    .key(config.keyName)
+                    .bucket(bucketName)
+                    .key(keyName)
                     .uploadId(uploadId)
                     .multipartUpload(CompletedMultipartUpload.builder().parts(completedParts).build())
                     .build());
@@ -126,8 +126,8 @@ public class S3FileUpload {
         } catch (S3Exception | IOException e) {
             if (uploadId != null) {
                 s3Client.abortMultipartUpload(AbortMultipartUploadRequest.builder()
-                        .bucket(config.bucketName)
-                        .key(config.keyName)
+                        .bucket(bucketName)
+                        .key(keyName)
                         .uploadId(uploadId)
                         .build());
             }
