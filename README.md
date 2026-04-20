@@ -16,17 +16,27 @@ All samples now use the AWS SDK for Java v2 client style and share the same runt
 
 ```text
 Makefile
-scripts/upload-text.sh
-scripts/upload-file.sh
-scripts/download-object.sh
-src/main/java/net/jrodolfo/awss3/SampleInput.java
-src/main/java/net/jrodolfo/awss3/upload/SingleS3Upload.java
-src/main/java/net/jrodolfo/awss3/upload/MultiPartS3Upload.java
-src/main/java/net/jrodolfo/awss3/download/S3ObjectDownload.java
-src/test/java/net/jrodolfo/awss3/SampleInputTest.java
-src/test/java/net/jrodolfo/awss3/upload/SingleS3UploadConfigTest.java
-src/test/java/net/jrodolfo/awss3/upload/MultiPartS3UploadConfigTest.java
-src/test/java/net/jrodolfo/awss3/download/S3ObjectDownloadConfigTest.java
+LICENSE
+README.md
+scripts/
+  upload-text.sh
+  upload-file.sh
+  download-object.sh
+src/
+  main/java/net/jrodolfo/awss3/
+    SampleInput.java
+    upload/
+      SingleS3Upload.java
+      MultiPartS3Upload.java
+    download/
+      S3ObjectDownload.java
+  test/java/net/jrodolfo/awss3/
+    SampleInputTest.java
+    upload/
+      SingleS3UploadConfigTest.java
+      MultiPartS3UploadConfigTest.java
+    download/
+      S3ObjectDownloadConfigTest.java
 ```
 
 ## Requirements
