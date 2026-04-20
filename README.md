@@ -1,5 +1,9 @@
 # AWS S3 Java Samples
 
+[![CI](https://github.com/jrodolfo/aws-s3/actions/workflows/ci.yml/badge.svg)](https://github.com/jrodolfo/aws-s3/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](./LICENSE)
+[![Java](https://img.shields.io/badge/java-8%2B-blue.svg)](https://www.java.com/)
+
 This repository is a small reference project for uploading to and downloading from Amazon S3 with Java.
 
 It is not a production-ready library. It is a compact set of S3 examples you can read, run, and adapt.
