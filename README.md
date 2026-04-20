@@ -32,6 +32,8 @@ src/
       S3ObjectDownload.java
   test/java/net/jrodolfo/awss3/
     SampleInputTest.java
+    integration/
+      S3IntegrationTest.java
     upload/
       SingleS3UploadConfigTest.java
       MultiPartS3UploadConfigTest.java
@@ -95,6 +97,7 @@ The `Makefile` provides a compact command surface for the most common tasks:
 
 - `make help`
 - `make test`
+- `make test-integration INTEGRATION_BUCKET=my-bucket`
 - `make upload-text BUCKET=my-bucket KEY=hello.txt`
 - `make upload-file BUCKET=my-bucket FILE=/path/to/file.zip`
 - `make download-object BUCKET=my-bucket KEY=hello.txt`
@@ -103,9 +106,38 @@ Examples:
 
 ```bash
 make test
+make test-integration INTEGRATION_BUCKET=my-s3-sample-bucket
 make upload-text BUCKET=my-s3-sample-bucket KEY=hello.txt CONTENT="hello from make"
 make upload-file BUCKET=my-s3-sample-bucket FILE=/path/to/file.zip
 make download-object BUCKET=my-s3-sample-bucket KEY=hello.txt
+```
+
+## Integration Test
+
+The repository includes an opt-in integration test that performs a real S3 round trip:
+
+- upload a temporary object
+- download the same object
+- verify the content matches
+- delete the temporary object
+
+The integration test is skipped unless `AWS_S3_INTEGRATION_BUCKET` is set.
+
+You can run it directly with Maven:
+
+```bash
+AWS_S3_INTEGRATION_BUCKET=my-s3-sample-bucket mvn -Dtest=net.jrodolfo.awss3.integration.S3IntegrationTest test
+```
+
+Optional variables:
+
+- `AWS_S3_INTEGRATION_REGION` with default `us-east-2`
+- `AWS_S3_INTEGRATION_PROFILE` to use a named AWS profile
+
+You can also run it through `make`:
+
+```bash
+make test-integration INTEGRATION_BUCKET=my-s3-sample-bucket
 ```
 
 ## Scripts
