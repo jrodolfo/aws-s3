@@ -15,6 +15,9 @@ All samples now use the AWS SDK for Java v2 client style and share the same runt
 ## Project Layout
 
 ```text
+scripts/upload-text.sh
+scripts/upload-file.sh
+scripts/download-object.sh
 src/main/java/net/jrodolfo/awss3/SampleInput.java
 src/main/java/net/jrodolfo/awss3/upload/SingleS3Upload.java
 src/main/java/net/jrodolfo/awss3/upload/MultiPartS3Upload.java
@@ -70,7 +73,29 @@ Common environment variables:
 
 ## Running The Samples
 
-You can run the classes directly with Maven.
+You can run the samples either through the shell scripts in `scripts/` or by calling the Java classes directly with Maven.
+
+## Scripts
+
+The repository includes small wrapper scripts for the three sample flows:
+
+- `scripts/upload-text.sh`
+- `scripts/upload-file.sh`
+- `scripts/download-object.sh`
+
+Each script validates the required arguments, sets the matching environment variables, and then runs the corresponding Java class with Maven.
+
+Examples:
+
+```bash
+scripts/upload-text.sh my-s3-sample-bucket hello.txt "hello from shell"
+scripts/upload-file.sh my-s3-sample-bucket /path/to/file.zip
+scripts/download-object.sh my-s3-sample-bucket hello.txt
+```
+
+You can also run any script with `--help` to see its expected arguments.
+
+## Maven Entry Points
 
 ### Single Object Upload
 
