@@ -2,6 +2,13 @@
 
 set -eu
 
+require_command() {
+  command -v "$1" >/dev/null 2>&1 || {
+    echo "Required command not found: $1" >&2
+    exit 1
+  }
+}
+
 usage() {
   cat <<'EOF'
 Usage:
@@ -35,6 +42,8 @@ PROFILE=${5:-}
 CREATE_BUCKET=${6:-false}
 
 SCRIPT_DIR=$(CDPATH= cd -- "$(dirname "$0")" && pwd)
+
+require_command mvn
 
 printf '%s\n' "Uploading object to s3..."
 "$SCRIPT_DIR/upload-text.sh" "$BUCKET" "$KEY" "$CONTENT" "$REGION" "$CREATE_BUCKET" false

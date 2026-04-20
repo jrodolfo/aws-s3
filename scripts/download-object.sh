@@ -2,6 +2,13 @@
 
 set -eu
 
+require_command() {
+  command -v "$1" >/dev/null 2>&1 || {
+    echo "Required command not found: $1" >&2
+    exit 1
+  }
+}
+
 usage() {
   cat <<'EOF'
 Usage:
@@ -32,6 +39,8 @@ PROFILE=${4:-}
 
 SCRIPT_DIR=$(CDPATH= cd -- "$(dirname "$0")" && pwd)
 REPO_DIR=$(CDPATH= cd -- "$SCRIPT_DIR/.." && pwd)
+
+require_command mvn
 
 export AWS_S3_BUCKET=$BUCKET
 export AWS_S3_KEY=$KEY

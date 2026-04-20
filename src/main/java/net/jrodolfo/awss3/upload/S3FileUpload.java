@@ -1,6 +1,7 @@
 package net.jrodolfo.awss3.upload;
 
 import net.jrodolfo.awss3.SampleInput;
+import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
@@ -30,16 +31,26 @@ public class S3FileUpload {
     private static final long MIN_MULTIPART_PART_SIZE = 5L * 1024L * 1024L;
 
     public static void main(String[] args) throws Exception {
-        Config config = resolveConfig(args);
+        try {
+            Config config = resolveConfig(args);
+            Path path = Paths.get(config.filePath);
+            long fileSizeInBytes = Files.size(path);
 
-        Path path = Paths.get(config.filePath);
-        long fileSizeInBytes = Files.size(path);
+            System.out.println("Uploading file " + config.filePath +
+                    ", size " + fileSizeInBytes + " bytes, " + "to the AWS S3 bucket " + config.bucketName + ".");
 
-        System.out.println("Uploading file " + config.filePath +
-                ", size " + fileSizeInBytes + " bytes, " + "to the AWS S3 bucket " + config.bucketName + ".");
-
-        try (S3Client s3Client = S3Client.builder().region(config.region).build()) {
-            uploadFile(s3Client, path, fileSizeInBytes, config);
+            try (S3Client s3Client = S3Client.builder().region(config.region).build()) {
+                uploadFile(s3Client, path, fileSizeInBytes, config);
+            }
+        } catch (IllegalArgumentException e) {
+            fail(e.getMessage());
+        } catch (IOException e) {
+            fail("Unable to read the local file. Check that the path exists and is readable. " + e.getMessage());
+        } catch (S3Exception e) {
+            fail("S3 upload failed. " + awsMessage(e) + " Check the bucket name, region, object key, and your permissions.");
+        } catch (SdkClientException e) {
+            fail("Unable to reach AWS S3. Check your credentials, AWS profile, network access, and region. "
+                    + e.getMessage());
         }
     }
 
@@ -136,6 +147,15 @@ public class S3FileUpload {
         Calendar calendar = Calendar.getInstance();
         SimpleDateFormat formatter = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
         System.out.println(formatter.format(calendar.getTime()) + " - Upload is completed.");
+    }
+
+    private static String awsMessage(S3Exception e) {
+        return e.awsErrorDetails() != null ? e.awsErrorDetails().errorMessage() : e.getMessage();
+    }
+
+    private static void fail(String message) {
+        System.err.println("Error: " + message);
+        System.exit(1);
     }
 
     static final class Config {

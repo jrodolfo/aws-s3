@@ -3,6 +3,7 @@ package net.jrodolfo.awss3.download;
 import net.jrodolfo.awss3.SampleInput;
 import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.ProfileCredentialsProvider;
+import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.ResponseInputStream;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
@@ -20,45 +21,49 @@ import java.io.InputStreamReader;
 public class S3ObjectDownload {
 
     public static void main(String[] args) throws IOException {
-        Config config = resolveConfig(args);
+        Config config = null;
+        try {
+            config = resolveConfig(args);
+            try (S3Client s3Client = buildClient(config)) {
+                // 1) Get an object and print its contents
+                System.out.println("Downloading an object");
+                try (ResponseInputStream<GetObjectResponse> fullObject = s3Client.getObject(GetObjectRequest.builder()
+                        .bucket(config.bucketName)
+                        .key(config.key)
+                        .build())) {
+                    System.out.println("Content-Type: " + fullObject.response().contentType());
+                    System.out.println("Content: ");
+                    displayTextInputStream(fullObject);
+                }
 
-        try (S3Client s3Client = buildClient(config)) {
-            // 1) Get an object and print its contents
-            System.out.println("Downloading an object");
-            try (ResponseInputStream<GetObjectResponse> fullObject = s3Client.getObject(GetObjectRequest.builder()
-                    .bucket(config.bucketName)
-                    .key(config.key)
-                    .build())) {
-                System.out.println("Content-Type: " + fullObject.response().contentType());
-                System.out.println("Content: ");
-                displayTextInputStream(fullObject);
-            }
+                try (ResponseInputStream<GetObjectResponse> objectPortion = s3Client.getObject(GetObjectRequest.builder()
+                        .bucket(config.bucketName)
+                        .key(config.key)
+                        .range("bytes=0-9")
+                        .build())) {
+                    System.out.println("Printing bytes retrieved.");
+                    displayTextInputStream(objectPortion);
+                }
 
-            // 2) Get a range of bytes from an object and print the bytes
-            try (ResponseInputStream<GetObjectResponse> objectPortion = s3Client.getObject(GetObjectRequest.builder()
-                    .bucket(config.bucketName)
-                    .key(config.key)
-                    .range("bytes=0-9")
-                    .build())) {
-                System.out.println("Printing bytes retrieved.");
-                displayTextInputStream(objectPortion);
+                try (ResponseInputStream<GetObjectResponse> headerOverrideObject = s3Client.getObject(GetObjectRequest.builder()
+                        .bucket(config.bucketName)
+                        .key(config.key)
+                        .responseCacheControl("No-cache")
+                        .responseContentDisposition("attachment; filename=example.txt")
+                        .build())) {
+                    displayTextInputStream(headerOverrideObject);
+                }
             }
-
-            // 3) Get an entire object, overriding the specified response headers, and print the object's content
-            try (ResponseInputStream<GetObjectResponse> headerOverrideObject = s3Client.getObject(GetObjectRequest.builder()
-                    .bucket(config.bucketName)
-                    .key(config.key)
-                    .responseCacheControl("No-cache")
-                    .responseContentDisposition("attachment; filename=example.txt")
-                    .build())) {
-                displayTextInputStream(headerOverrideObject);
-            }
+        } catch (IllegalArgumentException e) {
+            fail(e.getMessage());
         } catch (NoSuchKeyException e) {
-            e.printStackTrace();
+            fail("Object not found in S3. Check bucket '" + config.bucketName + "', key '"
+                    + config.key + "', and region settings.");
         } catch (S3Exception e) {
-            e.printStackTrace();
-        } catch (RuntimeException e) {
-            e.printStackTrace();
+            fail("S3 download failed. " + awsMessage(e) + " Check the bucket name, key, region, and your permissions.");
+        } catch (SdkClientException e) {
+            fail("Unable to reach AWS S3. Check your credentials, AWS profile, network access, and region. "
+                    + e.getMessage());
         }
     }
 
@@ -89,6 +94,15 @@ public class S3ObjectDownload {
             System.out.println(line);
         }
         System.out.println();
+    }
+
+    private static String awsMessage(S3Exception e) {
+        return e.awsErrorDetails() != null ? e.awsErrorDetails().errorMessage() : e.getMessage();
+    }
+
+    private static void fail(String message) {
+        System.err.println("Error: " + message);
+        System.exit(1);
     }
 
     static final class Config {
