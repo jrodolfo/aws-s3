@@ -1,7 +1,9 @@
 package com.example.awss3.upload;
 
 import com.amazonaws.AmazonClientException;
+import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
+import com.example.awss3.SampleInput;
 import com.amazonaws.event.ProgressEvent;
 import com.amazonaws.event.ProgressListener;
 import com.amazonaws.regions.Regions;
@@ -25,24 +27,25 @@ import java.util.concurrent.Executors;
 public class MultiPartS3Upload {
 
     public static void main(String[] args) throws Exception {
+        String bucketName = SampleInput.required(args, 0, "AWS_S3_BUCKET", "bucket name");
+        String absolutePathWithFileName = SampleInput.required(args, 1, "AWS_S3_FILE", "file path");
+        String keyName = SampleInput.optional(args, 2, "AWS_S3_KEY",
+                Paths.get(absolutePathWithFileName).getFileName().toString());
+        Regions region = Regions.fromName(SampleInput.optional(args, 3, "AWS_S3_REGION", Regions.US_EAST_2.getName()));
+        int maxUploadThreads = Integer.parseInt(SampleInput.optional(args, 4, "AWS_S3_MAX_THREADS", "10"));
+        long uploadThreshold = Long.parseLong(SampleInput.optional(args, 5, "AWS_S3_MULTIPART_THRESHOLD", "5242880"));
 
-        String bucketName = "jrodolfo-aws-training";
-        String keyName = "jdk-8u333-windows-x64.exe";
-        String fileName = "jdk-8u333-windows-x64.exe";
-
-        String absolutePathWithFileName = "C:\\dev\\doc\\" + fileName;
         Path path = Paths.get(absolutePathWithFileName);
         long fileSizeInBytes = Files.size(path);
-        int maxUploadThreads = 10;
-        long uploadThreshold = 5 * 1024 * 1024;
 
         System.out.println("Uploading file " + absolutePathWithFileName +
                 ", size " + fileSizeInBytes + " bytes, " + "to the AWS S3 bucket " + bucketName + ".");
 
+        AWSCredentialsProvider credentialsProvider = new DefaultAWSCredentialsProviderChain();
         AmazonS3 s3Client = AmazonS3ClientBuilder
                 .standard()
-                .withCredentials(new DefaultAWSCredentialsProviderChain())
-                .withRegion(Regions.US_EAST_2)
+                .withCredentials(credentialsProvider)
+                .withRegion(region)
                 .build();
 
         TransferManager transferManager = TransferManagerBuilder
@@ -61,24 +64,22 @@ public class MultiPartS3Upload {
             Calendar calendar = Calendar.getInstance();
             SimpleDateFormat formatter = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
             System.out.println(formatter.format(calendar.getTime()) + " - Upload is completed.");
-            System.exit(0);
         } catch (AmazonClientException e) {
             System.err.println("An error occurred while uploading the file " + absolutePathWithFileName +
-                    "to the AWS S3 bucket " + bucketName + ".");
+                    " to the AWS S3 bucket " + bucketName + ".");
             e.printStackTrace();
-            System.exit(1);
+            throw e;
+        } finally {
+            transferManager.shutdownNow(false);
         }
     }
 
-    private static ProgressListener createProgressListener(Transfer transfer)
-    {
-        return new ProgressListener()
-        {
+    private static ProgressListener createProgressListener(Transfer transfer) {
+        return new ProgressListener() {
             private double previousTransferred;
 
             @Override
-            public synchronized void progressChanged(ProgressEvent event)
-            {
+            public synchronized void progressChanged(ProgressEvent event) {
                 double transferred = transfer.getProgress().getPercentTransferred();
                 Calendar calendar;
                 SimpleDateFormat formatter = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");

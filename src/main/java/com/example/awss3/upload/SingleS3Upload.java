@@ -1,5 +1,6 @@
 package com.example.awss3.upload;
 
+import com.example.awss3.SampleInput;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.model.CreateBucketConfiguration;
@@ -15,41 +16,47 @@ import software.amazon.awssdk.services.s3.S3Client;
 public class SingleS3Upload {
 
     public static void main(String[] args) {
+        String bucket = SampleInput.required(args, 0, "AWS_S3_BUCKET", "bucket name");
+        String key = SampleInput.required(args, 1, "AWS_S3_KEY", "object key");
+        String content = SampleInput.optional(args, 2, "AWS_S3_CONTENT", "Testing with the {sdk-java}");
+        Region region = Region.of(SampleInput.optional(args, 3, "AWS_S3_REGION", Region.US_EAST_2.id()));
+        boolean createBucket = SampleInput.optionalBoolean(args, 4, "AWS_S3_CREATE_BUCKET", false);
+        boolean cleanUp = SampleInput.optionalBoolean(args, 5, "AWS_S3_CLEANUP", false);
 
-        Region region = Region.US_EAST_2;
         S3Client s3 = S3Client.builder().region(region).build();
+        try {
+            if (createBucket) {
+                tutorialSetup(s3, bucket, region);
+            }
 
-        String bucket = "bucket" + System.currentTimeMillis();
-        String key = "key";
+            System.out.println("Uploading object...");
+            s3.putObject(PutObjectRequest.builder().bucket(bucket).key(key).build(),
+                    RequestBody.fromString(content));
+            System.out.println("Upload complete");
+            System.out.printf("%n");
 
-        tutorialSetup(s3, bucket, region);
-
-        System.out.println("Uploading object...");
-
-        s3.putObject(PutObjectRequest.builder().bucket(bucket).key(key).build(),
-                RequestBody.fromString("Testing with the {sdk-java}"));
-
-        System.out.println("Upload complete");
-        System.out.printf("%n");
-
-        //cleanUp(s3, bucket, key);
-
-        System.out.println("Closing the connection to {S3}");
-        s3.close();
-        System.out.println("Connection closed");
-        System.out.println("Exiting...");
+            if (cleanUp) {
+                cleanUp(s3, bucket, key);
+            }
+        } finally {
+            System.out.println("Closing the connection to {S3}");
+            s3.close();
+            System.out.println("Connection closed");
+            System.out.println("Exiting...");
+        }
     }
 
     public static void tutorialSetup(S3Client s3Client, String bucketName, Region region) {
         try {
-            s3Client.createBucket(CreateBucketRequest
-                    .builder()
-                    .bucket(bucketName)
-                    .createBucketConfiguration(
-                            CreateBucketConfiguration.builder()
-                                    .locationConstraint(region.id())
-                                    .build())
-                    .build());
+            CreateBucketRequest.Builder requestBuilder = CreateBucketRequest.builder().bucket(bucketName);
+            if (!Region.US_EAST_1.equals(region)) {
+                requestBuilder.createBucketConfiguration(
+                        CreateBucketConfiguration.builder()
+                                .locationConstraint(region.id())
+                                .build());
+            }
+
+            s3Client.createBucket(requestBuilder.build());
             System.out.println("Creating bucket: " + bucketName);
             s3Client.waiter().waitUntilBucketExists(HeadBucketRequest.builder()
                     .bucket(bucketName)

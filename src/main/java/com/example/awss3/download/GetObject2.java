@@ -2,7 +2,10 @@ package com.example.awss3.download;
 
 import com.amazonaws.AmazonServiceException;
 import com.amazonaws.SdkClientException;
+import com.amazonaws.auth.AWSCredentialsProvider;
+import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
 import com.amazonaws.auth.profile.ProfileCredentialsProvider;
+import com.example.awss3.SampleInput;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
@@ -18,15 +21,20 @@ import java.io.InputStreamReader;
 public class GetObject2 {
 
     public static void main(String[] args) throws IOException {
-        Regions clientRegion = Regions.US_EAST_2;
-        String bucketName = "jrodolfo-aws-training";
-        String key = "test.txt"; // name of the file we want to download
+        Regions clientRegion = Regions.fromName(
+                SampleInput.optional(args, 2, "AWS_S3_REGION", Regions.US_EAST_2.getName()));
+        String bucketName = SampleInput.required(args, 0, "AWS_S3_BUCKET", "bucket name");
+        String key = SampleInput.required(args, 1, "AWS_S3_KEY", "object key");
+        String profileName = SampleInput.optional(args, 3, "AWS_PROFILE", null);
 
         S3Object fullObject = null, objectPortion = null, headerOverrideObject = null;
         try {
+            AWSCredentialsProvider credentialsProvider = profileName == null
+                    ? new DefaultAWSCredentialsProviderChain()
+                    : new ProfileCredentialsProvider(profileName);
             AmazonS3 s3Client = AmazonS3ClientBuilder.standard()
                     .withRegion(clientRegion)
-                    .withCredentials(new ProfileCredentialsProvider())
+                    .withCredentials(credentialsProvider)
                     .build();
 
             // 1) Get an object and print its contents
